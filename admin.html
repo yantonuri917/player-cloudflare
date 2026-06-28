@@ -34,6 +34,42 @@
             if (error) alert("Gagal: " + error.message);
             else alert("Data berhasil disimpan!");
         }
+        // ... (taruh di bawah script yang tadi)
+    <div id="result-area" style="margin-top:20px; display:none;">
+        <p>Data berhasil! Link Anda:</p>
+        <input type="text" id="final-link" readonly style="background:#f0f0f0;">
+        <button onclick="copyLink()">Salin Link</button>
+    </div>
+
+    <script>
+        async function saveData() {
+            const code = document.getElementById('access_code').value;
+            const data = {
+                name: document.getElementById('name').value,
+                access_code: code,
+                video_url: document.getElementById('video_url').value,
+                thumbnail_url: document.getElementById('thumbnail_url').value
+            };
+
+            const { error } = await client.from('videos_list').insert([data]);
+            
+            if (error) {
+                alert("Gagal: " + error.message);
+            } else {
+                // Tampilkan link otomatis
+                const link = window.location.origin + "/video?folder=" + code;
+                document.getElementById('final-link').value = link;
+                document.getElementById('result-area').style.display = "block";
+            }
+        }
+
+        function copyLink() {
+            const copyText = document.getElementById("final-link");
+            copyText.select();
+            document.execCommand("copy");
+            alert("Link berhasil disalin!");
+        }
     </script>
+    
 </body>
 </html>
