@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Generator</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 400px; margin: auto; }
+        input { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>Admin Generator</h2>
+    <input type="text" id="v_url" placeholder="Link Video">
+    <input type="text" id="t_url" placeholder="Link Thumbnail">
+    <button onclick="generate()">Generate Link</button>
+    <div id="result"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/config.js"></script>
+    <script>
+        const client = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+        async function generate() {
+            const code = Math.random().toString(36).substring(2, 10);
+            const thumb = document.getElementById('t_url').value;
+            const video = document.getElementById('v_url').value;
+
+            await client.from('videos_list').insert([{ 
+                access_code: code, 
+                video_url: video, 
+                thumbnail_url: thumb 
+            }]);
+            
+            // Link menyertakan ?img= agar bot medsos bisa langsung baca thumbnail
+            const link = window.location.origin + "/video/" + code + ".mp4?img=" + encodeURIComponent(thumb);
+            document.getElementById('result').innerHTML = "Link: <br><b>" + link + "</b>";
+        }
+    </script>
+</body>
+</html>
