@@ -5,15 +5,15 @@
     <style>body { font-family: sans-serif; max-width: 500px; margin: 50px auto; padding: 20px; }</style>
 </head>
 <body>
-    <h2>Tambah Data Video</h2>
+    <h2>Admin Panel</h2>
     <input type="text" id="name" placeholder="Nama Video">
-    <input type="text" id="access_code" placeholder="Kode Unik (Contoh: Twert)">
+    <input type="text" id="access_code" placeholder="Kode Unik">
     <input type="text" id="video_url" placeholder="Link Video">
-    <input type="text" id="thumbnail_url" placeholder="Link Gambar Thumbnail">
-    <button onclick="saveData()">Simpan & Generate Link</button>
+    <input type="text" id="thumbnail_url" placeholder="Link Thumbnail">
+    <button onclick="saveData()">Simpan & Generate</button>
     <div id="result-area" style="margin-top:20px; display:none;">
-        <p>Link Anda:</p>
-        <input type="text" id="final-link" readonly>
+        <p>Link untuk Twitter:</p>
+        <input type="text" id="final-link" readonly style="width:100%;">
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/config.js"></script>
@@ -21,7 +21,12 @@
         const client = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
         async function saveData() {
             const code = document.getElementById('access_code').value;
-            const data = { name: document.getElementById('name').value, access_code: code, video_url: document.getElementById('video_url').value, thumbnail_url: document.getElementById('thumbnail_url').value };
+            const data = { 
+                name: document.getElementById('name').value, 
+                access_code: code, 
+                video_url: document.getElementById('video_url').value, 
+                thumbnail_url: document.getElementById('thumbnail_url').value 
+            };
             const { error } = await client.from('videos_list').insert([data]);
             if (error) alert("Gagal: " + error.message);
             else {
