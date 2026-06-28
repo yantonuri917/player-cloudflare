@@ -17,20 +17,22 @@ export async function onRequest(context) {
   if (!data) return new Response("Video tidak ditemukan", { status: 404 });
 
   // JANGAN ADA REFRESH/REDIRECT. Biarkan bot membaca halaman ini.
-  return new Response(`
+ return new Response(`
     <!DOCTYPE html>
     <html>
       <head>
         <meta property="og:title" content="${data.name}" />
+        <meta property="og:description" content="Tonton ${data.name} sekarang di sini." />
         <meta property="og:image" content="${data.thumbnail_url}" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="${data.name}" />
+        <meta name="twitter:description" content="Tonton ${data.name} sekarang di sini." />
         <meta name="twitter:image" content="${data.thumbnail_url}" />
+        <meta http-equiv="refresh" content="3; url=/player.html?folder=${code}" />
       </head>
       <body style="background:#000; color:#fff; text-align:center; padding-top:50px;">
-        <h1>${data.name}</h1>
-        <a href="/player.html?folder=${code}" style="color:white; font-size:20px;">Klik di sini untuk menonton</a>
+        <h1>Memuat: ${data.name}...</h1>
+        <p>Jika tidak diarahkan, <a href="/player.html?folder=${code}" style="color:white;">klik di sini</a></p>
       </body>
     </html>
   `, { headers: { 'Content-Type': 'text/html' } });
-}
