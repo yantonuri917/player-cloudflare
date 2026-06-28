@@ -1,34 +1,38 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Admin Panel</title>
+    <title>Admin Panel - Upload Data</title>
+    <style>
+        body { font-family: sans-serif; max-width: 500px; margin: 50px auto; padding: 20px; }
+        input { display: block; width: 100%; margin: 10px 0; padding: 10px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+    </style>
 </head>
 <body>
-    <h2>Input Data Video</h2>
-    <input type="text" id="name" placeholder="Judul Video"><br>
-    <input type="text" id="video_url" placeholder="Link Video URL"><br>
-    <input type="text" id="thumbnail_url" placeholder="Link Thumbnail (Untuk Preview Link)"><br>
-    <input type="text" id="access_code" placeholder="Access Code (Contoh: video)"><br>
+    <h2>Tambah Data Video</h2>
+    <input type="text" id="name" placeholder="Nama Video">
+    <input type="text" id="access_code" placeholder="Kode Unik (Contoh: Twert)">
+    <input type="text" id="video_url" placeholder="Link Video (MP4/Iframe)">
+    <input type="text" id="thumbnail_url" placeholder="Link Gambar Thumbnail">
     <button onclick="saveData()">Simpan Data</button>
-    <div id="result"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/config.js"></script>
     <script>
         const client = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
         async function saveData() {
-            const { error } = await client.from('videos_list').insert([{
+            const data = {
                 name: document.getElementById('name').value,
+                access_code: document.getElementById('access_code').value,
                 video_url: document.getElementById('video_url').value,
-                thumbnail_url: document.getElementById('thumbnail_url').value,
-                access_code: document.getElementById('access_code').value
-            }]);
-            if (!error) {
-                document.getElementById('result').innerHTML = "Sukses! Link: " + window.location.origin + "/player.html?folder=" + document.getElementById('access_code').value;
-            } else {
-                alert("Error: " + error.message);
-            }
+                thumbnail_url: document.getElementById('thumbnail_url').value
+            };
+
+            const { error } = await client.from('videos_list').insert([data]);
+            
+            if (error) alert("Gagal: " + error.message);
+            else alert("Data berhasil disimpan!");
         }
     </script>
 </body>
