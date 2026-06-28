@@ -1,75 +1,42 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Admin Panel - Upload Data</title>
-    <style>
-        body { font-family: sans-serif; max-width: 500px; margin: 50px auto; padding: 20px; }
-        input { display: block; width: 100%; margin: 10px 0; padding: 10px; }
-        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
-    </style>
-</head>
-<body>
-    <h2>Tambah Data Video</h2>
-    <input type="text" id="name" placeholder="Nama Video">
-    <input type="text" id="access_code" placeholder="Kode Unik (Contoh: Twert)">
-    <input type="text" id="video_url" placeholder="Link Video (MP4/Iframe)">
-    <input type="text" id="thumbnail_url" placeholder="Link Gambar Thumbnail">
-    <button onclick="saveData()">Simpan Data</button>
+export async function onRequest(context) {
+  const { request, env } = context;
+  const url = new URL(request.url);
+  const code = url.searchParams.get('folder');
+  const defaultThumbnail = "https://via.placeholder.com/1200x630.png?text=Video+Player"; 
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/config.js"></script>
-    <script>
-        const client = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+  if (!code) return new Response("Kode tidak ditemukan", { status: 400 });
 
-        async function saveData() {
-            const data = {
-                name: document.getElementById('name').value,
-                access_code: document.getElementById('access_code').value,
-                video_url: document.getElementById('video_url').value,
-                thumbnail_url: document.getElementById('thumbnail_url').value
-            };
+  const response = await fetch(`${env.SUPABASE_URL}/rest/v1/videos_list?access_code=eq.${code}&select=*`, {
+    headers: {
+      'apikey': env.SUPABASE_KEY,
+      'Authorization': `Bearer ${env.SUPABASE_KEY}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  const results = await response.json();
+  const data = results[0];
 
-            const { error } = await client.from('videos_list').insert([data]);
-            
-            if (error) alert("Gagal: " + error.message);
-            else alert("Data berhasil disimpan!");
-        }
-        // ... (taruh di bawah script yang tadi)
-    <div id="result-area" style="margin-top:20px; display:none;">
-        <p>Data berhasil! Link Anda:</p>
-        <input type="text" id="final-link" readonly style="background:#f0f0f0;">
-        <button onclick="copyLink()">Salin Link</button>
-    </div>
+  if (!data) return new Response("Video tidak ditemukan", { status: 404 });
 
-    <script>
-        async function saveData() {
-            const code = document.getElementById('access_code').value;
-            const data = {
-                name: document.getElementById('name').value,
-                access_code: code,
-                video_url: document.getElementById('video_url').value,
-                thumbnail_url: document.getElementById('thumbnail_url').value
-            };
+  const finalThumbnail = data.thumbnail_url || defaultThumbnail;
 
-            const { error } = await client.from('videos_list').insert([data]);
-            
-            if (error) {
-                alert("Gagal: " + error.message);
-            } else {
-                // Tampilkan link otomatis
-                const link = window.location.origin + "/video?folder=" + code;
-                document.getElementById('final-link').value = link;
-                document.getElementById('result-area').style.display = "block";
-            }
-        }
-
-        function copyLink() {
-            const copyText = document.getElementById("final-link");
-            copyText.select();
-            document.execCommand("copy");
-            alert("Link berhasil disalin!");
-        }
-    </script>
-    
-</body>
-</html>
+  return new Response(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta property="og:title" content="${data.name}" />
+        <meta property="og:image" content="${finalThumbnail}" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="${data.name}" />
+        <meta name="twitter:image" content="${finalThumbnail}" />
+        <meta http-equiv="refresh" content="3; url=/player.html?folder=${code}" />
+      </head>
+      <body style="background:#000; color:#fff; text-align:center; padding-top:100px; font-family:sans-serif;">
+        <h1>Memuat: ${data.name}...</h1>
+        <p>Mengarahkan ke video dalam 3 detik...</p>
+        <a href="/player.html?folder=${code}" style="color:#00aaff; font-size:18px;">Klik di sini jika tidak otomatis</a>
+      </body>
+    </html>
+  `, { headers: { 'Content-Type': 'text/html' } });
+}
