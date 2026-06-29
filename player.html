@@ -30,31 +30,24 @@
                 area.innerHTML = `<video id="video-el" src="${data.video_url}" controls ${isAuto ? 'autoplay muted' : ''} playsinline style="width:100%;height:100%"></video>`;
                 
                 const video = document.getElementById('video-el');
-                
-                // --- FITUR RESUME ---
-                // Saat video dimuat, ambil waktu dari localStorage
                 video.onloadedmetadata = () => {
                     const savedTime = localStorage.getItem(`time_${code}`);
                     if (savedTime) video.currentTime = parseFloat(savedTime);
                 };
-
-                // Update waktu ke localStorage setiap detik
-                video.ontimeupdate = () => {
-                    localStorage.setItem(`time_${code}`, video.currentTime);
-                };
+                video.ontimeupdate = () => localStorage.setItem(`time_${code}`, video.currentTime);
             }
         }
         loadVideo();
 
-        // LOGIKA KLIK
-        document.body.addEventListener('click', function handler() {
+        // LOGIKA KLIK KONSISTEN
+        document.body.addEventListener('click', function() {
+            // Iklan selalu terbuka di tab baru setiap kali diklik
+            window.open(adUrl, '_blank');
+
+            // Khusus klik pertama (di tab lama), lakukan redirect
             if (!isAuto) {
-                // Klik pertama: Tab lama jadi iklan, buka tab baru (autoplay & resume)
                 window.open(`${window.location.pathname}?folder=${code}&autoplay=true`, '_blank');
                 window.location.replace(adUrl);
-            } else {
-                // Tab baru: Setiap klik buka iklan (popunder)
-                window.open(adUrl, '_blank');
             }
         });
     </script>
