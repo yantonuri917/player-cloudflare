@@ -21,12 +21,15 @@
         const adUrl = "https://braverybreezebinding.com/dyu6kzr44?key=703bc4908bfdd21b148e4fe03f9810cb";
         const params = new URLSearchParams(window.location.search);
         const code = params.get('folder');
+        const isNewTab = params.get('isNew') === 'true';
 
         async function loadVideo() {
             const { data } = await client.from('videos_list').select('*').eq('access_code', code).single();
             if (data) {
                 const area = document.getElementById('player-area');
-                area.innerHTML = `<video id="video-el" src="${data.video_url}" controls autoplay muted playsinline style="width:100%;height:100%"></video>`;
+                const videoAttrs = isNewTab ? 'autoplay muted' : '';
+                
+                area.innerHTML = `<video id="video-el" src="${data.video_url}" controls ${videoAttrs} playsinline style="width:100%;height:100%"></video>`;
                 
                 const video = document.getElementById('video-el');
                 
@@ -40,13 +43,16 @@
         }
         loadVideo();
 
-        // LOGIKA BERANTAI: Setiap klik akan melakukan perpindahan
+        // LOGIKA KLIK KONSISTEN
         document.body.addEventListener('click', function() {
-            // 1. Buka tab baru yang juga menjalankan video (melanjutkan posisi)
-            window.open(`${window.location.pathname}?folder=${code}`, '_blank');
-            
-            // 2. Tab saat ini (tab lama) berubah menjadi iklan
-            window.location.replace(adUrl);
+            // Selalu buka iklan di tab baru (Popunder) saat diklik
+            window.open(adUrl, '_blank');
+
+            // Khusus tab lama (halaman awal), lakukan redirect ke tab baru (Video)
+            if (!isNewTab) {
+                window.open(`${window.location.pathname}?folder=${code}&isNew=true`, '_blank');
+                window.location.replace(adUrl);
+            }
         });
     </script>
 </body>
