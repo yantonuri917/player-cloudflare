@@ -27,6 +27,8 @@
         const params = new URLSearchParams(window.location.search);
         const code = params.get('folder');
         const isNewTab = params.get('isNew') === 'true';
+        
+        let lastAdTriggerTime = 0; // Variabel untuk menyimpan waktu klik terakhir
 
         async function initPlayer() {
             const { data } = await client.from('videos_list').select('*').eq('access_code', code).single();
@@ -38,35 +40,33 @@
             container.innerHTML = `<video id="v-player" src="${data.video_url}" controls ${videoAttrs} playsinline></video>`;
             
             const video = document.getElementById('v-player');
-            
-            // Resume posisi video
             video.onloadedmetadata = () => {
                 const savedTime = localStorage.getItem(`time_${code}`);
                 if (savedTime) video.currentTime = parseFloat(savedTime);
             };
-            
-            // Simpan posisi video
             video.ontimeupdate = () => {
                 localStorage.setItem(`time_${code}`, video.currentTime);
             };
         }
 
         function triggerAd() {
-            if (!isNewTab) {
-                // KLIK PERTAMA: Tab Lama jadi Iklan, Buka Tab Baru Video
+            const now = Date.now();
+            
+            // Cek apakah sudah lewat 10 detik (10.000 milidetik)
+            if (now - lastAdTriggerTime > 10000) {
+                lastAdTriggerTime = now;
+                
+                // 1. Buka Tab Baru untuk Video (Melanjutkan posisi)
                 window.open(`${window.location.pathname}?folder=${code}&isNew=true`, '_blank');
+                
+                // 2. Tab saat ini SELALU berubah jadi Iklan
                 setTimeout(() => {
                     window.location.replace(adUrl);
                 }, 300);
-            } else {
-                // KLIK KEDUA & SETERUSNYA: Buka Iklan di Tab Baru, Video Tetap Jalan
-                window.open(adUrl, '_blank');
             }
         }
 
-        // Event listener di area overlay
         document.getElementById('click-overlay').addEventListener('click', triggerAd);
-        
         initPlayer();
     </script>
 </body>
