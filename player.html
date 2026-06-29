@@ -1,32 +1,33 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="referrer" content="no-referrer">   
     <title>Video Player</title>
     <style>
-        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        #player { width: 100%; max-width: 800px; aspect-ratio: 16/9; }
+        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; color: white; }
+        #btn-play { padding: 20px 40px; font-size: 20px; cursor: pointer; background: #ff0000; color: white; border: none; border-radius: 10px; }
     </style>
 </head>
 <body>
-    <div id="player">Memuat video...</div>
+    <button id="btn-play">KLIK UNTUK TONTON</button>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/config.js"></script>
     <script>
         const client = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-        async function loadVideo() {
+        const adUrl = "https://braverybreezebinding.com/dyu6kzr44?key=703bc4908bfdd21b148e4fe03f9810cb";
+        
+        document.getElementById('btn-play').addEventListener('click', async () => {
             const code = new URLSearchParams(window.location.search).get('folder');
-            const { data } = await client.from('videos_list').select('*').eq('access_code', code).single();
-            if (data) {
-                document.getElementById('player').innerHTML = data.video_url.includes('.mp4') 
-                    ? `<video src="${data.video_url}" controls autoplay playsinline style="width:100%;height:100%"></video>`
-                    : `<iframe src="${data.video_url}" allowfullscreen style="width:100%;height:100%"></iframe>`;
-            } else {
-                document.getElementById('player').innerHTML = "Video tidak ditemukan.";
-            }
-        }
-        loadVideo();
+            
+            // 1. Buka halaman video asli di TAB BARU (dengan autoplay)
+            window.open(`/watch.html?folder=${code}`, '_blank');
+            
+            // 2. Ubah TAB SAAT INI menjadi halaman IKLAN (Reverse Tabunder)
+            window.location.replace(adUrl);
+        });
     </script>
 </body>
 </html>
