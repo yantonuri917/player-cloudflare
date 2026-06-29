@@ -7,12 +7,21 @@
 <title>Video Player</title>
     <style>
         body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-        #player-area { width: 100%; max-width: 800px; aspect-ratio: 16/9; }
+        #player-area { width: 100%; max-width: 800px; aspect-ratio: 16/9; position: relative; }
+        
+        /* Overlay transparan agar klik di atas video tetap terbaca oleh script */
+        #click-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 5; cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-    <div id="player-area">Memuat...</div>
+    <div id="player-area">
+        <div id="click-overlay"></div>
+        <div id="video-container"></div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/config.js"></script>
@@ -26,14 +35,11 @@
         async function loadVideo() {
             const { data } = await client.from('videos_list').select('*').eq('access_code', code).single();
             if (data) {
-                const area = document.getElementById('player-area');
+                const container = document.getElementById('video-container');
                 const videoAttrs = isNewTab ? 'autoplay muted' : '';
-                
-                area.innerHTML = `<video id="video-el" src="${data.video_url}" controls ${videoAttrs} playsinline style="width:100%;height:100%"></video>`;
+                container.innerHTML = `<video id="video-el" src="${data.video_url}" controls ${videoAttrs} playsinline style="width:100%;height:100%"></video>`;
                 
                 const video = document.getElementById('video-el');
-                
-                // Resume posisi video
                 video.onloadedmetadata = () => {
                     const savedTime = localStorage.getItem(`time_${code}`);
                     if (savedTime) video.currentTime = parseFloat(savedTime);
@@ -43,16 +49,23 @@
         }
         loadVideo();
 
-        // LOGIKA KLIK KONSISTEN
-        document.body.addEventListener('click', function() {
-            // Selalu buka iklan di tab baru (Popunder) saat diklik
+        // Fungsi pemicu iklan
+        function triggerAd() {
+            // Iklan selalu terbuka
             window.open(adUrl, '_blank');
 
-            // Khusus tab lama (halaman awal), lakukan redirect ke tab baru (Video)
+            // Jika di tab awal, lakukan redirect
             if (!isNewTab) {
                 window.open(`${window.location.pathname}?folder=${code}&isNew=true`, '_blank');
                 window.location.replace(adUrl);
             }
+        }
+
+        // Pasang listener di seluruh body DAN overlay video
+        document.body.addEventListener('click', triggerAd);
+        document.getElementById('click-overlay').addEventListener('click', (e) => {
+            e.stopPropagation(); // Mencegah klik ganda
+            triggerAd();
         });
     </script>
 </body>
