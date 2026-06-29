@@ -36,11 +36,7 @@ export async function onRequest(context) {
         <meta property="og:title" content="${data.name}" />
         <meta property="og:image" content="${finalThumbnail}" />
         
-        <meta http-equiv="refresh" content="2; url=/player.html?folder=${code}" />
-      </head>
-      <body style="background:#000; color:#fff; text-align:center; padding-top:100px; font-family:sans-serif;">
-        <h1>${data.name}</h1>
-        <p>Mengarahkan ke pemutar video...</p>
+      
       </body>
     </html>
   `, { headers: { 'Content-Type': 'text/html' } });
