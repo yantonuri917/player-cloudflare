@@ -39,7 +39,7 @@ export async function onRequest(context) {
       </head>
       <body style="background:#000; color:#fff; text-align:center; padding-top:100px; font-family:sans-serif;">
         <h1>${data.name}</h1>
-        <p>...</p>
+        <p>PLAY</p>
       
       </body>
     </html>
