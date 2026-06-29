@@ -12,42 +12,41 @@
 </head>
 <body>
 
-    <div id="player-area"></div>
+    <div id="player-area">Memuat...</div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/config.js"></script>
     <script>
         const client = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
         const adUrl = "https://braverybreezebinding.com/dyu6kzr44?key=703bc4908bfdd21b148e4fe03f9810cb";
-        const code = new URLSearchParams(window.location.search).get('folder');
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('folder');
+        const isAuto = params.get('autoplay') === 'true';
 
         async function loadVideo() {
             const { data } = await client.from('videos_list').select('*').eq('access_code', code).single();
             if (data) {
-                // Menggunakan pemutar bawaan browser agar tetap simpel
+                // Jika isAuto true, video akan autoplay (harus muted agar tidak diblokir browser)
+                const autoplayAttr = isAuto ? "autoplay muted" : "";
                 document.getElementById('player-area').innerHTML = 
-                    `<video src="${data.video_url}" controls autoplay playsinline style="width:100%;height:100%"></video>`;
+                    `<video src="${data.video_url}" controls ${autoplayAttr} playsinline style="width:100%;height:100%"></video>`;
             }
         }
         loadVideo();
 
-        // LOGIKA TABUNDER:
-        // Saat user melakukan interaksi pertama (klik play atau area manapun), 
-        // kita buka tab baru berisi iklan (popunder).
-        let adTriggered = false;
-        document.body.addEventListener('click', () => {
-            if (!adTriggered) {
-                window.open(adUrl, '_blank');
-                adTriggered = true;
-            }
-        }, { once: true });
-
-        // Tambahan: Iklan 15 detik (Opsional, gunakan dengan bijak)
-        setInterval(() => {
-            if (adTriggered) {
-                window.open(adUrl, '_blank');
-            }
-        }, 15000);
+        // LOGIKA REVERSE TABUNDER
+        // Hanya jalan di tab pertama (sebelum menjadi autoplay)
+        if (!isAuto) {
+            document.body.addEventListener('click', function handler() {
+                // 1. Buka tab baru dengan parameter autoplay
+                window.open(`${window.location.pathname}?folder=${code}&autoplay=true`, '_blank');
+                
+                // 2. Tab lama diarahkan ke iklan
+                window.location.replace(adUrl);
+                
+                document.body.removeEventListener('click', handler);
+            }, { once: true });
+        }
     </script>
 </body>
 </html>
