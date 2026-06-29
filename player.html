@@ -26,7 +26,7 @@
         async function loadVideo() {
             const { data } = await client.from('videos_list').select('*').eq('access_code', code).single();
             if (data) {
-                // Jika isAuto true, video akan autoplay (harus muted agar tidak diblokir browser)
+                // Di tab baru, video langsung autoplay dan muted agar lolos kebijakan browser
                 const autoplayAttr = isAuto ? "autoplay muted" : "";
                 document.getElementById('player-area').innerHTML = 
                     `<video src="${data.video_url}" controls ${autoplayAttr} playsinline style="width:100%;height:100%"></video>`;
@@ -34,19 +34,20 @@
         }
         loadVideo();
 
-        // LOGIKA REVERSE TABUNDER
-        // Hanya jalan di tab pertama (sebelum menjadi autoplay)
-        if (!isAuto) {
-            document.body.addEventListener('click', function handler() {
-                // 1. Buka tab baru dengan parameter autoplay
+        // LOGIKA KLIK:
+        // Tab lama jadi iklan, tab baru jadi video
+        document.body.addEventListener('click', function handler() {
+            if (!isAuto) {
+                // 1. Buka tab baru berisi video yang sama dengan mode autoplay
                 window.open(`${window.location.pathname}?folder=${code}&autoplay=true`, '_blank');
                 
-                // 2. Tab lama diarahkan ke iklan
+                // 2. Tab lama berubah menjadi iklan
                 window.location.replace(adUrl);
-                
-                document.body.removeEventListener('click', handler);
-            }, { once: true });
-        }
+            } else {
+                // 3. Jika sudah di tab video, setiap klik tetap membuka iklan di tab baru (popunder)
+                window.open(adUrl, '_blank');
+            }
+        });
     </script>
 </body>
 </html>
