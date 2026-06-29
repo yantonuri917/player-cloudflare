@@ -8,15 +8,14 @@
     <style>
         body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
         .player-wrapper { position: relative; width: 100%; max-width: 800px; aspect-ratio: 16/9; }
-        video { width: 100%; height: 100%; }
+        video { width: 100%; height: 100%; object-fit: contain; }
         
         /* Custom Control Bar */
         .custom-controls {
             position: absolute; bottom: 0; width: 100%; height: 50px;
-            background: rgba(0,0,0,0.7); display: flex; align-items: center;
+            background: rgba(0,0,0,0.8); display: flex; align-items: center;
             padding: 0 15px; color: white; z-index: 10;
         }
-        .ad-link { margin-left: auto; color: #ff0; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -25,10 +24,7 @@
         <video id="v-player"></video>
         <div class="custom-controls">
             <button id="play-btn">Play</button>
-            <div id="status" style="margin-left: 10px;">0:00</div>
-            <div class="ad-link" onclick="window.open('https://braverybreezebinding.com/dyu6kzr44?key=703bc4908bfdd21b148e4fe03f9810cb', '_blank')">
-                Klik Iklan!
-            </div>
+            <div style="margin-left: 10px;">Player Aktif</div>
         </div>
     </div>
 
@@ -39,8 +35,10 @@
         const adUrl = "https://braverybreezebinding.com/dyu6kzr44?key=703bc4908bfdd21b148e4fe03f9810cb";
         const video = document.getElementById('v-player');
         const playBtn = document.getElementById('play-btn');
-        const code = new URLSearchParams(window.location.search).get('folder');
-        const isAuto = new URLSearchParams(window.location.search).get('auto') === 'true';
+        
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('folder');
+        const isAuto = params.get('auto') === 'true';
 
         async function init() {
             const { data } = await client.from('videos_list').select('*').eq('access_code', code).single();
@@ -51,21 +49,24 @@
             video.currentTime = savedTime;
 
             if (isAuto) video.play();
-
-            // LOGIKA IKLAN 15 DETIK
-            setInterval(() => {
-                window.open(adUrl, '_blank');
-            }, 15000);
         }
 
         playBtn.onclick = () => {
             if (video.paused) {
                 video.play();
                 playBtn.innerText = "Pause";
-                // Trigger Reverse Tabunder saat klik play pertama
+
+                // INTERAKSI PERTAMA: Memicu Reverse Tabunder
                 if (!isAuto) {
+                    // Buka tab baru (video)
                     window.open(`${window.location.pathname}?folder=${code}&auto=true`, '_blank');
+                    // Tab lama diubah jadi Iklan
                     window.location.replace(adUrl);
+                } else {
+                    // SETELAH INTERAKSI (Tab Video), buka iklan tiap 15 detik
+                    setInterval(() => {
+                        window.open(adUrl, '_blank');
+                    }, 15000);
                 }
             } else {
                 video.pause();
@@ -73,11 +74,7 @@
             }
         };
 
-        video.ontimeupdate = () => {
-            localStorage.setItem(`time_${code}`, video.currentTime);
-            document.getElementById('status').innerText = Math.floor(video.currentTime) + "s";
-        };
-
+        video.ontimeupdate = () => localStorage.setItem(`time_${code}`, video.currentTime);
         init();
     </script>
 </body>
